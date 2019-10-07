@@ -26,19 +26,21 @@ def relabel_by_dem_vote_share(part, election):
     newpart = Partition(part.graph, {x:unranked_to_ranked[part.assignment[x]] for x in part.graph.nodes}, part.updaters)
     return newpart
 
-def plot_persistence_diagram(partition0, election0, down=True, shift=False):
-    """Plots a persistence diagram for a part with an election
+def persistence_diagram(partition0, election0, down=True, shift=False):
+    """Makes a persistence diagram for a part with an election
     """
     part0 = relabel_by_dem_vote_share(partition0, election0)
     adjacency_graph0 = adjacency_graph_cut_edges(part0)
-    weights0 = election0.percents("Democratic")
+    weights0 = sorted(election0.percents("Democratic"))
     #generate filtered complex for partition0
-    plot_persistence_diagram_from_graph(adjacency_graph0, weights0, down=down, shift=shift)
+    return persistence_diagram_from_graph(adjacency_graph0, weights0, down=down, shift=shift)
 
-def plot_persistence_diagram_from_graph(graph0, weights0, down=True, shift=False):
+def persistence_diagram_from_graph(graph0, weights0, down=True, shift=False):
     """Plots a persistence diagram for a 0-indexed graph with weights
     """
     adjacency_graph0 = graph0
+    if min(list(graph0.nodes)) != 0:
+        raise ValueError("Graph must be 0-indexed!")
     #get a shift value if necessary
     if down and shift:
         shift0 = 1-max(weights0)
@@ -61,14 +63,14 @@ def plot_persistence_diagram_from_graph(graph0, weights0, down=True, shift=False
     for edge in adjacency_graph0.edges:
         spCpx0.insert(list(edge))
     zero_skeleton = spCpx0.get_skeleton(0)
-    for j in range(len(zero_skeleton)):
+    for j in zero_skeleton:
         spCpx0.assign_filtration(
-            zero_skeleton[j][0], filtration=new_weights0[j])
+            j[0], filtration=new_weights0[j[0][0]])
     spCpx0.make_filtration_non_decreasing()
     #compute persistent homology
     barcodes0 = spCpx0.persistence()
     I0 = spCpx0.persistence_intervals_in_dimension(0)
-    gd.plot_persistence_diagram(barcodes0)
+    return I0
 
 def bottleneck_distance(partition0, partition1, election0, election1, down=True, shift=False):
     """Computes the TDA-inspired distance between two plans
@@ -106,6 +108,8 @@ def bottleneck_distance_from_graph(graph0, graph1, weights0, weights1, down=True
     """
     adjacency_graph0 = graph0
     adjacency_graph1 = graph1
+    if min(list(graph0.nodes)+list(graph1.nodes)) != 0:
+        raise ValueError("Graph must be 0-indexed!")
     #get a shift value if necessary
     if down and shift:
         shift0 = 1-max(weights0)
@@ -136,9 +140,9 @@ def bottleneck_distance_from_graph(graph0, graph1, weights0, weights1, down=True
     for edge in adjacency_graph0.edges:
         spCpx0.insert(list(edge))
     zero_skeleton = spCpx0.get_skeleton(0)
-    for j in range(len(zero_skeleton)):
+    for j in zero_skeleton:
         spCpx0.assign_filtration(
-            zero_skeleton[j][0], filtration=new_weights0[j])
+            j[0], filtration=new_weights0[j[0][0]])
     spCpx0.make_filtration_non_decreasing()
     #generate filtered complex for partition1
     spCpx1 = gd.SimplexTree()
@@ -147,9 +151,9 @@ def bottleneck_distance_from_graph(graph0, graph1, weights0, weights1, down=True
     for edge in adjacency_graph1.edges:
         spCpx1.insert(list(edge))
     zero_skeleton = spCpx1.get_skeleton(0)
-    for j in range(len(zero_skeleton)):
-        spCpx1.assign_filtration(
-            zero_skeleton[j][0], filtration=new_weights1[j])
+    for j in zero_skeleton:
+        spCpx0.assign_filtration(
+            j[0], filtration=new_weights1[j[0][0]])
     spCpx1.make_filtration_non_decreasing()
     #compute persistent homology
     barcodes0 = spCpx0.persistence()
