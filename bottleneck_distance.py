@@ -10,7 +10,7 @@ def adjacency_graph_cut_edges(part):
     """
     edges = set([(part.assignment[x], part.assignment[y]) for x, y in part['cut_edges']])
     adjacency_graph = nx.Graph()
-    adjacency_graph.add_nodes_from(list({x for (x,y) in edges}))
+    adjacency_graph.add_nodes_from(list(part.parts.keys()))
     adjacency_graph.add_edges_from(list(edges))
     return adjacency_graph
 
@@ -179,6 +179,7 @@ def plot_districts_and_labels(part, gdf, labels, cmap="tab20c"):
     districts["centroid"] = centroids
     fig, ax = plt.subplots(figsize=(20,20))
     part.plot(gdf, cmap=cmap, ax=ax)
+    districts.boundary.plot(ax=ax, edgecolor='black')
     for idx, row in districts.iterrows():
         ax.annotate(s=str(labels[row.name]), xy=row['centroid'].coords[0],
                  horizontalalignment='center')
