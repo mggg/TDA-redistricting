@@ -152,7 +152,7 @@ def bottleneck_distance_from_graph(graph0, graph1, weights0, weights1, down=True
         spCpx1.insert(list(edge))
     zero_skeleton = spCpx1.get_skeleton(0)
     for j in zero_skeleton:
-        spCpx0.assign_filtration(
+        spCpx1.assign_filtration(
             j[0], filtration=new_weights1[j[0][0]])
     spCpx1.make_filtration_non_decreasing()
     #compute persistent homology
