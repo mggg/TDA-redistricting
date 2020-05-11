@@ -98,7 +98,7 @@ for n in graph.nodes: #fix NaN
 
 total_population = sum([graph.nodes[n][pop_col] for n in graph.nodes()])
 
-print("Shapefiles loaded and ready to run ReCom over blocks...")
+print("Shapefiles loaded and ready to run ReCom...")
 
 for k in [num_districts]:
     parts = []
@@ -121,25 +121,8 @@ for k in [num_districts]:
     myupdaters.update(election_updaters)
 
     #initial partition
-    if k == 203 and blocks_or_precincts == "blocks":
-        ass7 = split_districts(
-            Partition(graph, {x:0 for x in graph.nodes}, myupdaters),
-            7,
-            total_population/7,
-            pop_col,
-            pop_tol/k
-        )
-        ass203 = split_districts(
-            Partition(graph, ass7, myupdaters),
-            29,
-            total_population/203,
-            pop_col,
-            pop_tol/k
-        )
-        initial_partition = Partition(graph, ass203, myupdaters)
-    else:
-        ass = recursive_tree_part(graph, range(k), total_population/k, pop_col, pop_tol/k)
-        initial_partition = Partition(graph, ass, myupdaters)
+    ass = recursive_tree_part(graph, range(k), total_population/k, pop_col, pop_tol)
+    initial_partition = Partition(graph, ass, myupdaters)
     dev = max([np.abs(initial_partition["population"][d] - pop_target) for d in initial_partition.parts])
     print(" Using initial", k, "districts with population deviation = ", 100*dev/pop_target, "% of ideal.")
 
@@ -163,13 +146,13 @@ for k in [num_districts]:
             for e in election_names:
                 newp = relabel_by_dem_vote_share(step, step[e])
                 graphs[e].append((adjacency_graph_cut_edges(newp), sorted(step[e].percents("Democratic"))))
-        #dump all plans
-        parts.append(step.assignment)
+            parts.append(step.assignment)
         #dump ten times during run
         if index%int(steps/10) == 0:
             pickle.dump(parts, open(outputfolder+"/parts"+str(num_districts)+".p", "wb"))
             pickle.dump(graphs, open(outputfolder+"/graphs"+str(num_districts)+".p", "wb"))
 
+#pickling the graphs and partitions for later analysis
 print("Done with ReCom!")
 pickle.dump(parts, open(outputfolder+"/parts"+str(num_districts)+".p", "wb"))
 pickle.dump(graphs, open(outputfolder+"/graphs"+str(num_districts)+".p", "wb"))
